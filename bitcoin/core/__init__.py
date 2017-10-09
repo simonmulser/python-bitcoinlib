@@ -437,6 +437,7 @@ class CBlockHeader(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.nTime))
         f.write(struct.pack(b"<I", self.nBits))
         f.write(struct.pack(b"<I", self.nNonce))
+        VarIntSerializer.stream_serialize(0, f)
 
     @staticmethod
     def calc_difficulty(nBits):
