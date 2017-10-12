@@ -335,6 +335,8 @@ class msg_getheaders(MsgSerializable):
 
 class msg_headers(MsgSerializable):
     command = b"headers"
+    # bitcoin expects txn_count=0 in headers object. since this is not part of CBlockHeader we use CBlock class
+    # for this msg method. Just transform your CBlockHeader object in a CBlock with 0 txs.
 
     def __init__(self, protover=PROTO_VERSION):
         super(msg_headers, self).__init__(protover)
@@ -343,11 +345,11 @@ class msg_headers(MsgSerializable):
     @classmethod
     def msg_deser(cls, f, protover=PROTO_VERSION):
         c = cls()
-        c.headers = VectorSerializer.stream_deserialize(CBlockHeader, f)
+        c.headers = VectorSerializer.stream_deserialize(CBlock, f)
         return c
 
     def msg_ser(self, f):
-        VectorSerializer.stream_serialize(CBlockHeader, self.headers, f)
+        VectorSerializer.stream_serialize(CBlock, self.headers, f)
 
     def __repr__(self):
         return "msg_headers(headers=%s)" % (repr(self.headers))
