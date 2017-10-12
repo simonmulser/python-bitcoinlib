@@ -542,7 +542,7 @@ class CBlockHeader(ImmutableSerializable):
         nNonce = struct.unpack(b"<I", ser_read(f,4))[0]
         return cls(nVersion, hashPrevBlock, hashMerkleRoot, nTime, nBits, nNonce)
 
-    def stream_serialize(self, f):
+    def stream_serialize_without_tx_count(self, f):
         f.write(struct.pack(b"<i", self.nVersion))
         assert len(self.hashPrevBlock) == 32
         f.write(self.hashPrevBlock)
@@ -551,6 +551,10 @@ class CBlockHeader(ImmutableSerializable):
         f.write(struct.pack(b"<I", self.nTime))
         f.write(struct.pack(b"<I", self.nBits))
         f.write(struct.pack(b"<I", self.nNonce))
+
+    def stream_serialize(self, f):
+        self.stream_serialize_without_tx_count(f)
+        VarIntSerializer.stream_serialize(0, f)
 
     @staticmethod
     def calc_difficulty(nBits):
@@ -701,7 +705,7 @@ class CBlock(CBlockHeader):
         return self
 
     def stream_serialize(self, f, include_witness=True):
-        super(CBlock, self).stream_serialize(f)
+        super(CBlock, self).stream_serialize_without_tx_count(f)
         VectorSerializer.stream_serialize(CTransaction, self.vtx, f, dict(include_witness=include_witness))
 
     def get_header(self):
